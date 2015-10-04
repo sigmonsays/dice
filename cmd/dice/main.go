@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -16,6 +17,11 @@ type Options struct {
 
 	// sides of a die
 	Sides int
+}
+
+type Dicer interface {
+	Roll()
+	FaceValue() int
 }
 
 type Die struct {
@@ -41,6 +47,10 @@ func (d *Die) Roll() {
 	d.Value = v
 }
 
+func (d *Die) FaceValue() int {
+	return d.Value
+}
+
 // make a new die and roll it
 func NewRoll(sides int) *Die {
 	d := NewSidedDie(sides)
@@ -56,11 +66,22 @@ func (dice Dice) Roll() {
 	}
 }
 func (dice Dice) String() string {
-	v := make([]int, len(dice))
+	v := make([]string, len(dice))
+
+	char_width := len(fmt.Sprintf("%d", dice[0].Sides))
+	f := "%" + fmt.Sprintf("%d", char_width) + "d"
+
 	for i, d := range dice {
-		v[i] = d.Value
+		v[i] = fmt.Sprintf(f, d.Value)
 	}
-	return fmt.Sprintf("%v", v)
+	return strings.Join(v, " ")
+}
+
+func (dice Dice) FaceValue() (value int) {
+	for _, d := range dice {
+		value += d.Value
+	}
+	return
 }
 
 func init() {
@@ -69,8 +90,8 @@ func init() {
 
 func main() {
 	opts := &Options{
-		Rolls:   1,
-		NumDice: 1,
+		Rolls:   3,
+		NumDice: 3,
 		Sides:   6,
 	}
 
@@ -87,7 +108,7 @@ func main() {
 		for i := 0; i < opts.NumDice; i++ {
 			dice[i] = NewRoll(opts.Sides)
 		}
-		fmt.Printf("roll %d %s\n", roll, dice)
+		fmt.Printf("roll %d: %s (%d face value)\n", roll, dice, dice.FaceValue())
 
 	}
 }
