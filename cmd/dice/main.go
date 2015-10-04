@@ -77,6 +77,7 @@ func main() {
 	flag.IntVar(&opts.NumDice, "num", opts.NumDice, "number of dice to roll")
 	flag.IntVar(&opts.NumDice, "n", opts.NumDice, "alias for num")
 	flag.IntVar(&opts.Rolls, "rolls", opts.Rolls, "number of rolls")
+	flag.IntVar(&opts.Rolls, "r", opts.Rolls, "alias for rolls")
 	flag.IntVar(&opts.Sides, "s", opts.Sides, "alias for sides")
 	flag.IntVar(&opts.Sides, "sides", opts.Sides, "alias for sides")
 	flag.Parse()
