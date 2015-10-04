@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,6 +18,9 @@ type Options struct {
 
 	// sides of a die
 	Sides int
+
+	// keep rolling until these die appear
+	RollUntil string
 }
 
 type Dicer interface {
@@ -58,6 +62,15 @@ func NewRoll(sides int) *Die {
 	return d
 }
 
+// return a number of dice rolled
+func NewDice(n, sides int) Dice {
+	dice := make(Dice, n)
+	for i := 0; i < n; i++ {
+		dice[i] = NewRoll(sides)
+	}
+	return dice
+}
+
 type Dice []*Die
 
 func (dice Dice) Roll() {
@@ -75,6 +88,14 @@ func (dice Dice) String() string {
 		v[i] = fmt.Sprintf(f, d.Value)
 	}
 	return strings.Join(v, " ")
+}
+func (dice Dice) Values() []int {
+	values := make([]int, 0)
+	for _, d := range dice {
+		values = append(values, d.Value)
+	}
+	return values
+
 }
 
 func (dice Dice) FaceValue() (value int) {
@@ -101,14 +122,60 @@ func main() {
 	flag.IntVar(&opts.Rolls, "r", opts.Rolls, "alias for rolls")
 	flag.IntVar(&opts.Sides, "s", opts.Sides, "alias for sides")
 	flag.IntVar(&opts.Sides, "sides", opts.Sides, "alias for sides")
+	flag.StringVar(&opts.RollUntil, "roll-until", opts.RollUntil, "roll until the sequence is met (coma delimited)")
 	flag.Parse()
 
-	for roll := 1; roll <= opts.Rolls; roll++ {
-		dice := make(Dice, opts.NumDice)
-		for i := 0; i < opts.NumDice; i++ {
-			dice[i] = NewRoll(opts.Sides)
-		}
-		fmt.Printf("roll %d: %s (%d face value)\n", roll, dice, dice.FaceValue())
+	if opts.RollUntil != "" {
 
+		tmp := strings.Split(opts.RollUntil, ",")
+
+		if opts.NumDice > len(tmp) {
+			fmt.Printf("setting number of dice to %d\n", len(tmp))
+			opts.NumDice = len(tmp)
+		}
+
+		roll_until := make([]int, 0)
+		for _, v := range tmp {
+			n, err := strconv.Atoi(v)
+			if err != nil {
+				fmt.Printf("ERROR: %s: %s\n", v, err)
+				continue
+			}
+			roll_until = append(roll_until, n)
+		}
+
+		fmt.Printf("rolling until sequence %v\n", roll_until)
+
+		var dice Dice
+
+		var num_rolls int
+		for num_rolls = 0; ; num_rolls++ {
+			dice = NewDice(opts.NumDice, opts.Sides)
+			dice.Roll()
+
+			met := true
+			for i, v := range dice.Values() {
+
+				if roll_until[i] != v {
+					met = false
+					break
+				}
+			}
+
+			if met == true {
+				break
+			}
+
+		}
+		fmt.Printf("rolled %s in %d rolls\n", tmp, num_rolls)
+
+		return
 	}
+
+	for roll := 1; roll <= opts.Rolls; roll++ {
+		dice := NewDice(opts.NumDice, opts.Sides)
+		dice.Roll()
+		fmt.Printf("roll %d: %s (%d face value)\n", roll, dice, dice.FaceValue())
+	}
+
 }
