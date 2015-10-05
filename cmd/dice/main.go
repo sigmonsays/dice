@@ -183,11 +183,9 @@ func main() {
 
 		if opts.MatchSequence {
 			fmt.Printf("rolling until sequence %v\n", roll_until)
-			fmt.Printf("matching using sequence\n")
 			matchFunc = MatchSequence
 		} else {
-			fmt.Printf("rolling until sequence %v\n", roll_until)
-			fmt.Printf("matching using contains\n")
+			fmt.Printf("rolling until roll contains %v\n", roll_until)
 			matchFunc = MatchContains
 		}
 
