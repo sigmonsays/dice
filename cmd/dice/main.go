@@ -21,6 +21,9 @@ type Options struct {
 
 	// keep rolling until these die appear
 	RollUntil string
+
+	MatchSequence bool
+	Verbose       bool
 }
 
 type Dicer interface {
@@ -109,6 +112,32 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+// returns true if the given roll matches the sequence
+func MatchSequence(seq []int, roll Dice) bool {
+	met := true
+	for i, v := range roll.Values() {
+		if seq[i] != v {
+			met = false
+			break
+		}
+	}
+	return met
+}
+
+// match if the roll contains the given numbers in any order
+func MatchContains(numbers []int, roll Dice) bool {
+	remaining := make(map[int]bool, 0)
+	for _, n := range numbers {
+		remaining[n] = true
+	}
+	for _, v := range roll.Values() {
+		delete(remaining, v)
+	}
+	return len(remaining) == 0
+}
+
+type Matcher func(numbers []int, roll Dice) bool
+
 func main() {
 	opts := &Options{
 		Rolls:   3,
@@ -123,6 +152,10 @@ func main() {
 	flag.IntVar(&opts.Sides, "s", opts.Sides, "alias for sides")
 	flag.IntVar(&opts.Sides, "sides", opts.Sides, "alias for sides")
 	flag.StringVar(&opts.RollUntil, "roll-until", opts.RollUntil, "roll until the sequence is met (coma delimited)")
+	flag.BoolVar(&opts.MatchSequence, "sequence", opts.MatchSequence, "match die sequence")
+
+	flag.BoolVar(&opts.Verbose, "verbose", opts.Verbose, "verbose")
+	flag.BoolVar(&opts.Verbose, "v", opts.Verbose, "verbose")
 	flag.Parse()
 
 	if opts.RollUntil != "" {
@@ -148,21 +181,26 @@ func main() {
 
 		var dice Dice
 
+		var matchFunc Matcher
+
+		if opts.MatchSequence {
+			fmt.Printf("matching using sequence\n")
+			matchFunc = MatchSequence
+		} else {
+			fmt.Printf("matching using contains\n")
+			matchFunc = MatchContains
+		}
+
 		var num_rolls int
-		for num_rolls = 0; ; num_rolls++ {
+		for num_rolls = 1; ; num_rolls++ {
 			dice = NewDice(opts.NumDice, opts.Sides)
 			dice.Roll()
 
-			met := true
-			for i, v := range dice.Values() {
-
-				if roll_until[i] != v {
-					met = false
-					break
-				}
+			if opts.Verbose {
+				fmt.Printf("roll %d: got %v\n", num_rolls, dice.Values())
 			}
 
-			if met == true {
+			if matchFunc(roll_until, dice) {
 				break
 			}
 
