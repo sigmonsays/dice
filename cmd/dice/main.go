@@ -162,7 +162,7 @@ func main() {
 
 		tmp := strings.Split(opts.RollUntil, ",")
 
-		if opts.NumDice > len(tmp) {
+		if opts.NumDice < len(tmp) {
 			fmt.Printf("setting number of dice to %d\n", len(tmp))
 			opts.NumDice = len(tmp)
 		}
@@ -177,16 +177,16 @@ func main() {
 			roll_until = append(roll_until, n)
 		}
 
-		fmt.Printf("rolling until sequence %v\n", roll_until)
-
 		var dice Dice
 
 		var matchFunc Matcher
 
 		if opts.MatchSequence {
+			fmt.Printf("rolling until sequence %v\n", roll_until)
 			fmt.Printf("matching using sequence\n")
 			matchFunc = MatchSequence
 		} else {
+			fmt.Printf("rolling until sequence %v\n", roll_until)
 			fmt.Printf("matching using contains\n")
 			matchFunc = MatchContains
 		}
