@@ -126,12 +126,15 @@ func MatchSequence(seq []int, roll Dice) bool {
 
 // match if the roll contains the given numbers in any order
 func MatchContains(numbers []int, roll Dice) bool {
-	remaining := make(map[int]bool, 0)
+	remaining := make(map[int]int, 0)
 	for _, n := range numbers {
-		remaining[n] = true
+		remaining[n] += 1
 	}
 	for _, v := range roll.Values() {
-		delete(remaining, v)
+		remaining[v]--
+		if remaining[v] == 0 {
+			delete(remaining, v)
+		}
 	}
 	return len(remaining) == 0
 }
