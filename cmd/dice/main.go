@@ -16,6 +16,9 @@ type Options struct {
 	// number of dice to roll
 	NumDice int
 
+	// time number of iterations
+	TimeIterations int
+
 	// sides of a die
 	Sides int
 
@@ -159,7 +162,33 @@ func main() {
 
 	flag.BoolVar(&opts.Verbose, "verbose", opts.Verbose, "verbose")
 	flag.BoolVar(&opts.Verbose, "v", opts.Verbose, "verbose")
+	flag.IntVar(&opts.TimeIterations, "time-iterations", opts.TimeIterations, "time number of iterations")
 	flag.Parse()
+
+	if opts.TimeIterations > 0 {
+		var matchFunc Matcher
+
+		if opts.MatchSequence {
+			matchFunc = MatchSequence
+		} else {
+			matchFunc = MatchContains
+		}
+		dice := NewDice(opts.NumDice, opts.Sides)
+		start := time.Now()
+		var fake_match []int
+		for i := 0; i < opts.NumDice; i++ {
+			fake_match = append(fake_match, 0)
+		}
+		for i := 0; i < opts.TimeIterations; i++ {
+			dice = NewDice(opts.NumDice, opts.Sides)
+			dice.Roll()
+			matchFunc(fake_match, dice)
+		}
+		stop := time.Now()
+		durSec := int64(stop.Sub(start).Seconds())
+		fmt.Printf("%d iterations took %d sec\n", opts.TimeIterations, durSec)
+		return
+	}
 
 	if opts.RollUntil != "" {
 
