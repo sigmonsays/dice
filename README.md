@@ -25,3 +25,7 @@ Roll until a sequence
       rolling until sequence [1 2 3 4 5 6]
       rolled [1 2 3 4 5 6] in 407 rolls
 
+
+Roll until specific numbers come up
+
+      $ dice --roll-until 1,1,1
